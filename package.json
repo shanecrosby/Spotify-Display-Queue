@@ -1,0 +1,66 @@
+{
+  "name": "spotify-display-queue-dev",
+  "version": "1.0.0",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "node appserver.cjs",
+    "start:server": "set NODE_ENV=production && node appserver.cjs",
+    "wait-for-server": "wait-on http://localhost:5000/login",
+    "electron": "concurrently \"npm run start:server\" \"npm run wait-for-server && electron .\"",
+    "electron2": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.7.3",
+    "body-parser": "^1.20.2",
+    "electron-log": "^5.1.7",
+    "express": "^4.19.2",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "querystring": "^0.2.1",
+    "spotify-web-api-node": "^5.0.2"
+  },
+  "devDependencies": {
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "concurrently": "^8.2.2",
+    "kill-port": "^2.0.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.yourcompany.yourapp",
+    "productName": "Spotify Display Queue-Dev",
+    "icon": "Spotify Display Queue - icon.png",
+    "files": [
+      "dist/**/*",
+      "public/**/*",
+      "node_modules/**/*",
+      "server/**/*",
+      "appserver.cjs",
+      "main.cjs",
+      "Spotify Display Queue - icon.png"
+    ],
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  }
+}
