@@ -5,6 +5,7 @@ const path = require('path');
 // const http = require('http');
 const net = require('net'); // Import the net module for checking the server
 const fs = require('fs');
+const axios = require('axios');
 
 // ==== SET UP CONFIG FILE PATH =====
 function loadConfig() {
@@ -52,6 +53,7 @@ const appConfig = loadConfig();
 
 // Assign the config values
 const port = appConfig.port || 3000; // Default to 3000 if not specified
+const startUrl = `http://localhost:${port}/login`;
 if(!appConfig.spotifyClientId) {
     log.error('Environment variable file containing Spotify Client ID and API key is missing. Unable to start.');
     app.quit(); // Gracefully quit the app
@@ -115,8 +117,13 @@ function initializeServer() {
     try {
         serverInstance = require('./appserver.cjs');
 
-        serverInstance.listen(port, () => {
+        serverInstance.listen(port, async () => {
             log.info(`Server is running on port ${port}`);
+            
+            // Pause for 5 seconds before checking server is up using HTTP
+            await delay(5000);
+            const serverRunning = await isServerRunning(startUrl);
+            log.info(`Server running: ${serverRunning}`);
         }).on('error', (err) => {
             if (err.code === 'EADDRINUSE') {
                 log.warn(`Port ${port} is already in use, which is expected. Suppressing the error.`);
@@ -136,7 +143,7 @@ function initializeServer() {
 
     // Optional: Log to check if the server is actually running
     delay(5000).then(async () => {
-        const serverRunning = await isServerRunning(port);
+        const serverRunning = await isServerRunning(startUrl);
         log.info(`Server running: ${serverRunning}`);
     });
 }
@@ -179,7 +186,7 @@ async function createWindow(config) {
         autoHideMenuBar: false
     });
 
-    const startUrl = `http://localhost:${port}/login`;
+    
 
     log.info(`main.cjs > before .loadURL(startUrl) ${startUrl}`);
     mainWindow.loadURL(startUrl).catch(err => log.error('Failed to load URL:', err));
@@ -206,17 +213,33 @@ function delay(ms) {
 }
 
 // Function to check if the server is already running
-async function isServerRunning(port) {
-    return new Promise((resolve) => {
-        const serverCheck = net.createConnection({ port }, () => {
-            serverCheck.end();
-            log.info(`main.cjs > isServerRunning = TRUE`);
-            resolve(true);
-        });
+async function isServerRunning(url) {
+    try {
+        const response = await axios.get(url);
+        log.info(`main.cjs > isServerRunning: Server responded with status ${response.status}`);
+        return true; //Server is running and responding
+    } catch (error) {
+        if (error.response) {
+            // Server responded with status other than 2xx
+            log.warn(`main.cjs > Server responded with status: ${error.response.status}`);
+        } else if (error.request) {
+            log.warn('main.cjs > No response received from the server.');
+        } else {
+            // Something weird happened in setting up the request
+            log.error(`main.cjs > Error in isServerRunning: ${error.message}`);
+        }
+        return false; // Server is not running.
+    }
+    // return new Promise((resolve) => {
+    //     const serverCheck = net.createConnection({ port }, () => {
+    //         serverCheck.end();
+    //         log.info(`main.cjs > isServerRunning = TRUE`);
+    //         resolve(true);
+    //     });
     
-        serverCheck.on('error', () => {
-            log.info(`main.cjs > isServerRunning = FALSE`);
-            resolve(false);
-        });
-    });
+    //     serverCheck.on('error', () => {
+    //         log.info(`main.cjs > isServerRunning = FALSE`);
+    //         resolve(false);
+    //     });
+    // });
 }
