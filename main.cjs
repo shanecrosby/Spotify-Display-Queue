@@ -84,7 +84,7 @@ app.whenReady().then(async () => {
 
 // ==== APP CENTRAL FUNCTIONS ====
 
-// Function start the server.cjs
+// Function start the server (appServer.cjs)
 async function startServer() {
     const isDev = process.env.NODE_ENV === 'development';
     log.info(`main.cjs > startServer ${process.env.NODE_ENV}`);
@@ -96,9 +96,23 @@ async function startServer() {
         try {
             const portInUse = await checkPortAvailability(port);
             if(portInUse) {
-                log.error(`Port ${port} is already in use.`);
-                app.quit();
-                process.exit(1);
+                // Wait until the port is free
+                try {
+                    await waitForPort(port);
+
+                    // Run the server directly and assign the server instance
+                    if (serverInstance) {
+                        serverInstance.close(() => {
+                            log.info('Previous server instance closed.');
+                            initializeServer();
+                        });
+                    } else {
+                        initializeServer();
+                    }
+                } catch (error) {
+                    log.error('Failed to start server', error);
+                    app.quit();
+                }
             } else {
                 if (serverInstance) {
                     serverInstance.close(() => {
@@ -171,7 +185,6 @@ async function createWindow(config) {
 
     log.info(`main.cjs > before .loadURL(startUrl) ${startUrl}`);
     mainWindow.loadURL(startUrl).catch(err => log.error('Failed to load URL:', err));
-    mainWindow.webContents.openDevTools(); //only needed during dev
 
     mainWindow.on('ready-to-show', () => {
         log.info('main.cjs > Window is ready to show');
@@ -186,8 +199,7 @@ async function createWindow(config) {
     });
 
     mainWindow.setMenuBarVisibility(false);
-
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 }
 
 // ==== UTILITY FUNCTIONS ====
@@ -207,10 +219,30 @@ function checkPortAvailability(port) {
             }
         });
         server.once('listening', () => {
-            server.close(() => resolve(false));
+            //server.close(() => resolve(false));
         });
         server.listen(port);
     });
+}
+
+// Function to wait until the port is free with a timeout
+async function waitForPort(port, delayMs = 1000, timeoutMs = 10000) {
+    const startTime = Date.now();
+
+    while (true) {
+        const currentTime = Date.now();
+        if (currentTime - startTime > timeoutMs) {
+            throw new Error(`Port ${port} is still in use after ${timeoutMs}ms.`);
+        }
+
+        if (!(await isServerRunning(port))) {
+            log.info(`Port ${port} is now available.`);
+            return;
+        }
+
+        log.info(`Port ${port} is in use. Waiting...`);
+        await delay(delayMs);
+    }
 }
 
 // Function to check if the server is already running
