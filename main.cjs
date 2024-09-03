@@ -207,7 +207,7 @@ async function createWindow(config) {
     });
 
     mainWindow.setMenuBarVisibility(false);
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools(); //for debugging purposes only
 }
 
 // ==== UTILITY FUNCTIONS ====
