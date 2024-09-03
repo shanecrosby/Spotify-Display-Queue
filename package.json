@@ -50,12 +50,6 @@
       ".env",
       "Spotify Display Queue - icon.png"
     ],
-    "extraResources": [
-      {
-        "from": ".env",
-        "to": ".env"
-      }
-    ],
     "directories": {
       "output": "build"
     },
