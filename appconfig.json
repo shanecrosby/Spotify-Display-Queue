@@ -4,13 +4,13 @@
     "spotifyClientId": "${SPOTIFY_CLIENT_ID}",
     "spotifyClientSecret": "${SPOTIFY_CLIENT_SECRET}",
 
-    "windowWidth": 600,
-    "windowHeight": 725,
+    "windowWidth": 500,
+    "windowHeight": 550,
 
     "pageRefreshMs": 5000,
     "fontFamily": "'Poppins Regular', 'Roboto', sans-serif",
-    "backGroundColor": "rgba(25, 25, 35, .5)",
-    "borderColor": "rgba(32,32,32, 1)",
+    "backGroundColor": "rgba(25, 25, 35, .25)",
+    "borderColor": "rgba(14, 37, 69, 1)",
     "errorBackGroundColor" : "rgba(255, 200, 200, 1)",
     "errorHeaderColor": "red",
 

@@ -50,14 +50,14 @@ console.warn = log.warn;
 console.debug = log.debug;
 console.silly = log.silly;
 
-console.log(`****** SERVER STARTING FOR DISPLAY SONGS QUEUE ******`);
+console.log(`****** SERVER STARTING TO DISPLAY SPOTIFY QUEUE ******`);
 
 
 // Assign the config values
 const appConfig = loadConfig();
 
 const port = appConfig.port || 3000; // Default to 3000 if not specified
-const pageRefreshMs = appConfig.pageRefreshMs || 10000; // Default 10,000ms = 10sec
+const pageRefreshMs = appConfig.pageRefreshMs || 5000; // Default 5000ms = 5sec
 const fontFamily = appConfig.fontFamily || "'Roboto', sans-serif";
 let backGroundColor = appConfig.backGroundColor || "rgba(255, 255, 255, .5)"; // white opacity 50%
 
@@ -307,9 +307,9 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           }
         });
 
-        queue = queueData.data.queue.slice(0, appConfig.nbrTracks); // Get the next 5 songs from the queue
+        queue = queueData.data.queue.slice(0, appConfig.nbrTracks); // Get the next x songs from the queue
         cachedQueue = queue;
-        // Get track ids for the next 5 songs in the queue
+        // Get track ids for the next x songs in the queue
         const trackIds = queue.map(track => track.id);
     
         if (addAudioFeatures) {
@@ -323,7 +323,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
             danceabilityList.push(audioFeatures.danceability);
             valenceList.push(audioFeatures.valence);
 
-            // Get audio features for the next 5 songs in the queue
+            // Get audio features for the next x songs in the queue
             queueFeaturesList = await getTracksFeatures(trackIds);
             bpmList = [...bpmList, ...queueFeaturesList.map(f => f.tempo)];
             energyList = [...energyList, ...queueFeaturesList.map(f => f.energy)];
@@ -332,7 +332,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
 
             cachedBpmList = bpmList;
             cachedEnergyList = energyList;
-            achedDanceabilityList = danceabilityList;
+            cachedDanceabilityList = danceabilityList;
             cachedValenceList = valenceList;    
           } else {
           console.error('appserver.cjs Error: No audio features found for the track.');
@@ -412,15 +412,14 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         body, html {
           margin: 0;
           padding: 0;
-          background-color: rgba(250, 250, 250, 1);
           font-family: ${fontFamily};
           overflow: hidden;
+          height: -webkit-fill-available;
         }
 
         body{
             font-family: ${fontFamily};
             -webkit-app-region: drag;
-            backdrop-filter: blur(10px);
         }    
 
         .background {
@@ -437,14 +436,18 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           padding: 10px;
           border-radius: 10px;
           background-color: ${backGroundColor}; /* Default background */
+          height: calc(100% - 20px);
+          width: calc(100% - 20px);
         }
 
         .container {
           position: relative;
           padding: 20px;
+          padding-top: 10px;
           border: 1px solid ${appConfig.borderColor};
-          margin: 10px;
-          max-width: 500px; /* Limit the maximum width of the entire container */
+          margin: 20px;
+          height: calc(100% - 30px);
+          /*max-width: 550px; /* Limit the maximum width of the entire container */
           margin: 0 auto; /* Center the container */
           background-color: transparent;
         }
@@ -454,15 +457,13 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           text-align: center;
           color: ${appConfig.headerColor};
           padding: 1px;
-          margin: 1px;
-          margin-block-start: 0; margin-block-end: 0;
+          margin: 0 0 15px 0;
         }
 
         .currently-playing {
           display: flex;
           align-items: center;
           margin-bottom: 20px;
-
         }
     
         .currently-playing img {
@@ -618,7 +619,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           <div class="container-wrapper" id="containerWrapper">
             <div class="container">
               <!-- Currently Playing Section -->
-              <h1>Now playing:</h1>
+              <h1 class="header">Now playing:</h1>
               <div class="currently-playing">
                 <img src="${albumImage}" alt="Album Art">
                 <div class="info">

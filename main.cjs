@@ -176,10 +176,11 @@ async function createWindow(config) {
     log.info('Creating window with config:', config);
 
     mainWindow = new BrowserWindow({
-        width: config.windowWidth || 600, //600 is the fallback in case it is missing from the config file
+        width: config.windowWidth || 650, //650 is the fallback in case it is missing from the config file
         height: config.windowHeight || 720, //720 is the fallback in case it is missing from the config file
         frame: false, // Remove the window frame.
-        transparent: true, // Enable transparency.
+        transparent: false, // Enable transparency.
+        backgroundMaterial: 'acrylic', // Apply acrylic background blur in Windows
         webPreferences: {
             //preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -207,6 +208,8 @@ async function createWindow(config) {
     });
 
     mainWindow.setMenuBarVisibility(false);
+    mainWindow.webContents.setVibrancy(under-window); // Blur background in MacOS
+    mainWindow.webContents.setBackgroundMaterial("acrylic"); // Blur background in Windows
     //mainWindow.webContents.openDevTools(); //for debugging purposes only
 }
 
