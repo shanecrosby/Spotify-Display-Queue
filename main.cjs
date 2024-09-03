@@ -94,26 +94,26 @@ async function startServer() {
 
         // Check port availability before starting the server        
         try {
-            const portInUse = await checkPortAvailability(port);
-            if(portInUse) {
-                // Wait until the port is free
-                try {
-                    await waitForPort(port);
+            // const portInUse = await checkPortAvailability(port);
+            // if(portInUse) {
+            //     // Wait until the port is free
+            //     try {
+            //         await waitForPort(port);
 
-                    // Run the server directly and assign the server instance
-                    if (serverInstance) {
-                        serverInstance.close(() => {
-                            log.info('Previous server instance closed.');
-                            initializeServer();
-                        });
-                    } else {
-                        initializeServer();
-                    }
-                } catch (error) {
-                    log.error('Failed to start server', error);
-                    //app.quit();
-                }
-            } else {
+            //         // Run the server directly and assign the server instance
+            //         if (serverInstance) {
+            //             serverInstance.close(() => {
+            //                 log.info('Previous server instance closed.');
+            //                 initializeServer();
+            //             });
+            //         } else {
+            //             initializeServer();
+            //         }
+            //     } catch (error) {
+            //         log.error('Failed to start server', error);
+            //         //app.quit();
+            //     }
+            // } else {
                 if (serverInstance) {
                     serverInstance.close(() => {
                         log.info('Previous server instance closed.');
@@ -122,12 +122,12 @@ async function startServer() {
                 } else {
                     initializeServer();
                 }            
-            }
+            //}
             
         } catch (error) {
             log.error('Failed to start server', error);
-            //app.quit();
-            //process.exit(1);
+            app.quit();
+            process.exit(1);
         }
     }
 }
