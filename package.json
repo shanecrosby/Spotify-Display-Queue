@@ -1,6 +1,6 @@
 {
-  "name": "spotify-display-queue-dev",
-  "version": "1.0.0",
+  "name": "spotify-queue-display",
+  "version": "1.1.0",
   "main": "main.cjs",
   "scripts": {
     "start": "node appserver.cjs",
@@ -13,9 +13,9 @@
     "build": "electron-builder"
   },
   "keywords": [],
-  "author": "",
+  "author": "Keith Flynn and Shane Crosby",
   "license": "ISC",
-  "description": "",
+  "description": "A simple app to display the currently playing and next few queued songs from Spotify. Displays as a floating widget that can sit above full-screen apps on Windows and MacOS.",
   "dependencies": {
     "axios": "^1.7.3",
     "body-parser": "^1.20.2",
@@ -36,8 +36,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.yourcompany.yourapp",
-    "productName": "Spotify Display Queue-Dev",
+    "appId": "com.wasda.spotifyqueuedisplay",
+    "productName": "WASDA Spotify Queue Display",
     "icon": "Spotify Display Queue - icon.png",
     "files": [
       "dist/**/*",
