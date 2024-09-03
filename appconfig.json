@@ -9,8 +9,8 @@
 
     "pageRefreshMs": 5000,
     "fontFamily": "'Poppins Regular', 'Roboto', sans-serif",
-    "backGroundColor": "rgba(25, 25, 35, .25)",
-    "borderColor": "rgba(14, 37, 69, 1)",
+    "backGroundColor": "rgba(14, 37, 69, .5)",
+    "borderColor": "rgba(117, 162, 250, 1)",
     "errorBackGroundColor" : "rgba(255, 200, 200, 1)",
     "errorHeaderColor": "red",
 
