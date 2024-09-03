@@ -111,7 +111,7 @@ async function startServer() {
                     }
                 } catch (error) {
                     log.error('Failed to start server', error);
-                    app.quit();
+                    //app.quit();
                 }
             } else {
                 if (serverInstance) {
@@ -126,8 +126,8 @@ async function startServer() {
             
         } catch (error) {
             log.error('Failed to start server', error);
-            app.quit();
-            process.exit(1);
+            //app.quit();
+            //process.exit(1);
         }
     }
 }
@@ -136,7 +136,7 @@ function initializeServer() {
     serverInstance = require('./appserver.cjs');
 
     // Pause for 5 seconds before checking if the server is up
-    delay(5000).then(async () => {
+    delay(20000).then(async () => {
         const serverRunning = await isServerRunning(port);
         log.info(`Server running: ${serverRunning}`);
     });
