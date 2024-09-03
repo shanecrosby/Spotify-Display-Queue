@@ -29,8 +29,8 @@ This initial handshake should only need to be done once per machine.
 
 ## Known issues
 ### Build issues
-The .env file contents don't seem to be included when the app is built, resulting in the app not working. A work-around is to hard-code the clientID and client secret in main.cjs and appserver.cjs in place of the environment variable reference, prior to build. Just don't sync it back to Github!
-After building (at least on MacOS), the app launches, but the web server component doesn't seem to for some reason. Since the whole thing is essentially a web-app this is kind of a show stopper. Will need more research to fix.
+- The .env file contents don't seem to be included when the app is built, resulting in the app not working. A work-around is to hard-code the clientID and client secret in main.cjs and appserver.cjs in place of the environment variable reference, prior to build. Just don't sync it back to Github!
+- After building (at least on MacOS), the app launches, but the web server component doesn't seem to for some reason. Since the whole thing is essentially a web-app this is kind of a show stopper. Will need more research to fix.
 
 ### Runtime issues
-You will need have Spotify actively playing a song in a playlist _before_ you launch the app, otherwise it will display an error message inside the app window and won't refresh until you relaunch the app.
+- You will need have Spotify actively playing a song in a playlist _before_ you launch the app, otherwise it will display an error message inside the app window and won't refresh until you relaunch the app.
