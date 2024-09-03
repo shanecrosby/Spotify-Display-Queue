@@ -23,6 +23,7 @@ function loadConfig() {
         // Replace variables in appconfig with actual environment variables
         config.spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
         config.spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+        log.info('main.cjs > spotifyClientID = ',config.spotifyClientId);
     } catch (error) {
         log.error('Failed to read config.json:', error);
         app.quit();
@@ -50,6 +51,11 @@ const appConfig = loadConfig();
 
 // Assign the config values
 const port = appConfig.port || 3000; // Default to 3000 if not specified
+if(!appConfig.spotifyClientId) {
+    log.error('Environment variable file containing Spotify Client ID and API key is missing. Unable to start.');
+    app.quit(); // Gracefully quit the app
+    process.exit(1); // Exit with a non-zero status code.
+}
 
 //==== EXECUTE THE APPLICATION ====
 app.whenReady().then(async () => {
@@ -134,6 +140,7 @@ async function createWindow(config) {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
+            //webSecurity: false, //this is required for my ancient macbook
         },
         fullscreen: false,
         autoHideMenuBar: false
@@ -143,6 +150,7 @@ async function createWindow(config) {
 
     log.info(`main.cjs > before .loadURL(startUrl) ${startUrl}`);
     mainWindow.loadURL(startUrl).catch(err => log.error('Failed to load URL:', err));
+    mainWindow.webContents.openDevTools();
 
     mainWindow.on('ready-to-show', () => {
         log.info('main.cjs > Window is ready to show');
