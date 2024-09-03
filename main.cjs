@@ -50,6 +50,8 @@ log.info('log file path is ',log.transports.file.file);
 let mainWindow;
 let serverInstance;
 const appConfig = loadConfig();
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
 
 // Assign the config values
 const port = appConfig.port || 3000; // Default to 3000 if not specified
