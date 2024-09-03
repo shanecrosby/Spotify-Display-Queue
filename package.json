@@ -9,6 +9,7 @@
     "wait-for-server": "wait-on http://localhost:5000/login",
     "check-port": "node checkPort.js",
     "electron": "npm run check-port && concurrently \"npm run start:server\" \"npm run wait-for-server && electron .\"",
+    "electron-dev": "npm run check-port && concurrently \"npm run start:server-dev\" \"npm run wait-for-server && electron .\"",
     "build": "electron-builder"
   },
   "keywords": [],
