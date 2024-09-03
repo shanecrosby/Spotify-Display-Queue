@@ -218,7 +218,7 @@ function checkPortAvailability(port) {
             }
         });
         server.once('listening', () => {
-            //server.close(() => resolve(false));
+            server.close(() => resolve(false));
         });
         server.listen(port);
     });
