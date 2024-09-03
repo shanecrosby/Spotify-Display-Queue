@@ -181,6 +181,7 @@ async function createWindow(config) {
     log.info('Creating window with config:', config);
 
     mainWindow = new BrowserWindow({
+        alwaysOnTop: true, // Keep window on top
         width: config.windowWidth || 650, //650 is the fallback in case it is missing from the config file
         height: config.windowHeight || 720, //720 is the fallback in case it is missing from the config file
         frame: false, // Remove the window frame.
@@ -214,8 +215,9 @@ async function createWindow(config) {
     });
 
     mainWindow.setMenuBarVisibility(false);
-    mainWindow.setAlwaysOnTop(true, "screen-saver"); // Allows app to sit above full-screen windows in MacOS
+    mainWindow.setAlwaysOnTop(true, "floating"); // Allows app to sit above full-screen windows in MacOS
     mainWindow.setVisibleOnAllWorkspaces(true); // Keeps app visible no matter which workspace is active in MacOS
+    mainWindow.setFullScreenable(false); // Needed to make the above work properly
     mainWindow.webContents.setVibrancy(under-window); // Blur background in MacOS
     mainWindow.webContents.setBackgroundMaterial("acrylic"); // Blur background in Windows
     //mainWindow.webContents.openDevTools(); //for debugging purposes only
