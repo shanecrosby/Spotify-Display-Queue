@@ -849,7 +849,7 @@ checkPortAvailability(port)
         console.log(`appserver.cjs > Press Ctrl+C to stop the server.`);
       })
     } else {
-      console.log(`appserver.cjs > Port ${port} is already in use.`);
+      console.log(`appserver.cjs > Port ${port} is already in use, but that is expected.`);
     }
   })
 
