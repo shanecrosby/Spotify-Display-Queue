@@ -47,6 +47,7 @@
       "appserver.cjs",
       "main.cjs",
       "appconfig.json",
+      ".env",
       "Spotify Display Queue - icon.png"
     ],
     "directories": {
