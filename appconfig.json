@@ -1,8 +1,8 @@
 {
     "port": 3000,
 
-    "clientId": "5a7bed263cf84aebb719a5eaf6af0020",
-    "clientSecret": "5aa22fff260d4f2bb7a972c1d337ac5d",
+    "clientId": "${SPOTIFY_CLIENT_ID}",
+    "clientSecret": "${SPOTIFY_CLIENT_SECRET}",
 
     "windowWidth": 600,
     "windowHeight": 725,
