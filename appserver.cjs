@@ -60,7 +60,6 @@ const port = appConfig.port || 3000; // Default to 3000 if not specified
 const pageRefreshMs = appConfig.pageRefreshMs || 10000; // Default 10,000ms = 10sec
 const fontFamily = appConfig.fontFamily || "'Roboto', sans-serif";
 let backGroundColor = appConfig.backGroundColor || "rgba(255, 255, 255, .5)"; // white opacity 50%
-let borderColor = appConfig.borderColor || "rgba(32,32,32, .5)"; // dark grey opacity 50%
 
 const nbrTracks = appConfig.nbrTracks || 5;
 let statusCode = 0;
@@ -393,7 +392,6 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         waitForRefresh = pageRefreshMs;
       }
       backGroundColor = appConfig.backGroundColor;
-      borderColor = appConfig.borderColor;
     } else {
         if (statusCode === 204) {
           console.error('Spotify is not available. Either start spotify or resume playback.'); 
@@ -414,7 +412,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         body, html {
           margin: 0;
           padding: 0;
-          background-color: "rgba(250, 250, 250, 1)";
+          background-color: rgba(250, 250, 250, 1);
           font-family: ${fontFamily};
           overflow: hidden;
         }
@@ -422,6 +420,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         body{
             font-family: ${fontFamily};
             -webkit-app-region: drag;
+            backdrop-filter: blur(10px);
         }    
 
         .background {
@@ -431,7 +430,6 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           width: 100%;
           height: 100%;
           background-color: ${backGroundColor}; /* Default background */
-          backdrop-filter: blur(10px);
         }
 
         .container-wrapper {
@@ -444,7 +442,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         .container {
           position: relative;
           padding: 20px;
-          border: 1px solid ${borderColor};
+          border: 1px solid ${appConfig.borderColor};
           margin: 10px;
           max-width: 500px; /* Limit the maximum width of the entire container */
           margin: 0 auto; /* Center the container */
@@ -452,6 +450,14 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         }
     
         /* Currently Playing Section */
+        .header {
+          text-align: center;
+          color: ${appConfig.headerColor};
+          padding: 1px;
+          margin: 1px;
+          margin-block-start: 0; margin-block-end: 0;
+        }
+
         .currently-playing {
           display: flex;
           align-items: center;
@@ -512,7 +518,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           justify-content: space-between;
           align-items: center;
           padding: 10px;
-          border-bottom: 1px solid ${borderColor};
+          border-bottom: 1px solid ${appConfig.borderColor};
         }
     
         .queue-item h2 {
@@ -612,6 +618,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           <div class="container-wrapper" id="containerWrapper">
             <div class="container">
               <!-- Currently Playing Section -->
+              <h1>Now playing:</h1>
               <div class="currently-playing">
                 <img src="${albumImage}" alt="Album Art">
                 <div class="info">
@@ -631,6 +638,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
     
               <!-- Queue Section -->
               <div class="queue-container">
+                <h2 class="header">Next up:</h2>
                 ${queue.map(track => `
                   <div class="queue-item">
                     <div class="song-info">

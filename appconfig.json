@@ -10,10 +10,11 @@
     "pageRefreshMs": 5000,
     "fontFamily": "'Poppins Regular', 'Roboto', sans-serif",
     "backGroundColor": "rgba(25, 25, 35, .5)",
-    "borderColor": "rgba(32,32,32, .5)",
+    "borderColor": "rgba(32,32,32, 1)",
     "errorBackGroundColor" : "rgba(255, 200, 200, 1)",
     "errorHeaderColor": "red",
 
+    "headerColor": "rgb(117, 162, 250)",
     "currSongColor": "rgb(206, 206, 242)",
     "currArtistColor" : "rgb(117, 162, 250)",
     "currTimeColor" : "white",
@@ -22,7 +23,7 @@
 
     "queueSongColor": "rgb(171, 205, 255)",
     "queueArtistColor" : "rgb(255, 199, 59)",
-    "QueueTimeColor": "black",
+    "QueueTimeColor": "rgb(171, 205, 255)",
 
     "nbrTracks": 3,
     "showTime" : "true",
