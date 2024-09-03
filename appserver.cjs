@@ -1,14 +1,37 @@
 // ==== SET UP EXTERNAL REFERENCE MODULES ====
+require('dotenv').config(); //allows storing sensitive strings like API keys in .env file to be excluded from github.
 const express = require('express');
 const SpotifyWebApi = require('spotify-web-api-node');
 const axios = require('axios');
-const expressApp = express();
+const expressApp = express(); //made global so it's accessible inside loadConfig();
 const path = require('path');
 const fs = require('fs');
 
 // ==== SET UP CONFIG FILE PATH =====
-const configFile = "appconfig.json";
-const configPath = path.join("E:", configFile); // E: for Dev, C: for Prod
+function loadConfig() {
+  const configFile = "appconfig.json";
+  const configPath = path.join(__dirname, configFile); // __dirname for relative path instead of hard-coded location
+
+  // ==== READ CONFIG FILE AND ASSIGN VALUES ====
+  // Read the CONFIG file - config.json
+  console.log(`appserver.cjs > config file path ${configPath}`);
+  console.log(`config file path ${configPath}`);
+
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(configPath), 'utf8');
+
+    // Replace variables in appconfig with actual environment variables
+    config.spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
+    config.spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  } catch (error) {
+      log.error(`appserver.cjs > Failed to read ${configPath}`, error);
+      throw error; // Let main.cjs handle the quit logic
+      //expressApp.quit(); //Apparently this isn't a function of express, at least according to ChatGPT.
+  }
+
+  return config;
+}
 
 // ==== SET UP LOGGING TO A FILE ====
 // Redirect console.log to use electron-log
@@ -21,38 +44,26 @@ console.silly = log.silly;
 
 console.log(`****** SERVER STARTING FOR DISPLAY SONGS QUEUE ******`);
 
-// ==== READ CONFIG FILE AND ASSIGN VALUES ====
-// Read the CONFIG file 
-
-console.log(`appserver.cjs config file path ${configPath}`);
-
-let config;
-try {
-  config = JSON.parse(fs.readFileSync(configPath), 'utf8');
-
-} catch (error) {
-    log.error(`appserver.cjs Failed to read ${configPath}`, error);
-    expressApp.quit();
-}
 
 // Assign the config values
-const port = config.port || 3000; // Default to 3001 if not specified
+const appConfig = loadConfig();
 
-const pageRefreshMs = config.pageRefreshMs || 10000; // Default 10,000ms = 10sec
-const fontFamily = config.fontFamily || "'Roboto', sans-serif";
-let backGroundColor = config.backGroundColor || "rgba(255, 255, 255, .5)"; // white opacity 50%
+const port = appConfig.port || 3000; // Default to 3000 if not specified
+const pageRefreshMs = appConfig.pageRefreshMs || 10000; // Default 10,000ms = 10sec
+const fontFamily = appConfig.fontFamily || "'Roboto', sans-serif";
+let backGroundColor = appConfig.backGroundColor || "rgba(255, 255, 255, .5)"; // white opacity 50%
 
-const nbrTracks = config.nbrTracks || 5;
+const nbrTracks = appConfig.nbrTracks || 5;
 let statusCode = 0;
 
-let addAudioFeatures = config.addAudioFeatures.toLowerCase() === 'true';
-let addGenre = config.addGenre.toLowerCase() === 'true';
-const displayTime = config.showTime.toLowerCase() === 'true';
-let displayBPM = config.BPM.toLowerCase() === 'true';
-let displayEnergy = config.energy.toLowerCase() === 'true';
-let displayDanceability = config.danceability.toLowerCase() === 'true';
-let displayHappiness = config.happiness.toLowerCase() === 'true';
-let displayGenres = config.genres.toLowerCase() === 'true';
+let addAudioFeatures = appConfig.addAudioFeatures.toLowerCase() === 'true';
+let addGenre = appConfig.addGenre.toLowerCase() === 'true';
+const displayTime = appConfig.showTime.toLowerCase() === 'true';
+let displayBPM = appConfig.BPM.toLowerCase() === 'true';
+let displayEnergy = appConfig.energy.toLowerCase() === 'true';
+let displayDanceability = appConfig.danceability.toLowerCase() === 'true';
+let displayHappiness = appConfig.happiness.toLowerCase() === 'true';
+let displayGenres = appConfig.genres.toLowerCase() === 'true';
 
 if (!addAudioFeatures && displayBPM && displayEnergy && displayDanceability && displayHappiness) {
   addAudioFeatures = false;
@@ -82,8 +93,8 @@ let playlistTrackIds = [];
 // ==== SETUP CONNECTION TO SPOTIFY ====
 // Spotify API credentials
 const spotifyApi = new SpotifyWebApi({
-    clientId: config.clientId,
-    clientSecret: config.clientSecret,
+    clientId: appConfig.spotifyClientId,
+    clientSecret: appConfig.spotifyClientSecret,
     redirectUri: `http://localhost:${port}/callback`
   });
   
@@ -108,8 +119,8 @@ const ensureValidToken = async (req, res, next) => {
     const readableNow = currentDate.toLocaleString();
     const readableExpiration = expirationDate.toLocaleString();
     
-    console.log(`appserver.cjs- Token - Current Date and Time: ${readableNow}`);
-    console.log(`appserver.cjs- Token - Token Expiration Date and Time: ${readableExpiration}`);
+    console.log(`appserver.cjs > Token - Current Date and Time: ${readableNow}`);
+    console.log(`appserver.cjs > Token - Token Expiration Date and Time: ${readableExpiration}`);
     
     if (Date.now() > tokenExpiration) {
         console.log("Token has expired.");
@@ -135,7 +146,7 @@ expressApp.get('/login', (req, res) => {
 // Endpoint to handle the callback from Spotify
 expressApp.get('/callback', async (req, res) => {
   const { code } = req.query;
-  console.log('appserver.cjs expressApp.get(/callback)');
+  console.log('appserver.cjs > expressApp.get(/callback)');
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
     accessToken = data.body.access_token;
@@ -156,7 +167,7 @@ expressApp.get('/callback', async (req, res) => {
 // Endpoint to fetch the current playback state and queue, and render the HTML page
 expressApp.get('/queue', ensureValidToken, async (req, res) => {
   try {
-    console.log('appserver.cjs expressApp.get(/queue)');
+    console.log('appserver.cjs > expressApp.get(/queue)');
     let playbackTrackName = '';
     let playbackTrackId = '';
     let playbackArtists = [];
@@ -226,7 +237,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         } else if (cachedcurrentlyPlayingPlaylist && cachedcurrentlyPlayingPlaylist.length > 0) {
           console.log('The array is not empty.');
         } else {
-          console.log(`The array is null or undefined. ${playlistId}`);
+          //console.log(`The array is null or undefined. ${playlistId}`); //Is it though?
           // Fetch the playlist details
           try {
             // Wait for the playlist to be fetched
@@ -250,7 +261,6 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           } catch (error) {
             console.error('Error fetching playlist:', error);
           }
-           
         }
 
         if (!cachedPlaylistId === playlistId) {
@@ -288,7 +298,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           }
         });
 
-        queue = queueData.data.queue.slice(0, config.nbrTracks); // Get the next 5 songs from the queue
+        queue = queueData.data.queue.slice(0, appConfig.nbrTracks); // Get the next 5 songs from the queue
         cachedQueue = queue;
         // Get track ids for the next 5 songs in the queue
         const trackIds = queue.map(track => track.id);
@@ -372,14 +382,14 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
 
         waitForRefresh = pageRefreshMs;
       }
-      backGroundColor = config.backGroundColor;    
+      backGroundColor = appConfig.backGroundColor;    
     } else {
         if (statusCode === 204) {
           console.error('Spotify is not available. Either state spotify or resume play on a song.'); 
-          backGroundColor = config.errorBackGroundColor;
+          backGroundColor = appConfig.errorBackGroundColor;
         } else {
           console.error('Unexpected Error', err); 
-          backGroundColor = config.errorBackGroundColor;         
+          backGroundColor = appConfig.errorBackGroundColor;         
         }
     }
 
@@ -389,7 +399,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
     valenceList = valenceList.map(value => Math.round(value * 100));
 
     const styles = `
-          <style>
+        <style>
         body, html {
           margin: 0;
           padding: 0;
@@ -465,14 +475,14 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           border-radius: 5px;
           overflow: hidden;
           position: relative;
-          background-color: ${config.progressBarColor};
+          background-color: ${appConfig.progressBarColor};
         }
     
         #progress {
           height: 100%;
           width: 50%; /* Default to 50% for now */
           border-radius: 5px;
-          background-color: ${config.progressColor};
+          background-color: ${appConfig.progressColor};
         }
     
         .time {
@@ -512,10 +522,10 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           white-space: nowrap;
         }
       </style>
-   `;
+    `;
 
     const scripts = `
-         <script>
+        <script>
         // Function to refresh the page every 10 seconds
             function refreshPage() {
             setTimeout(function(){
@@ -593,18 +603,18 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
               <div class="currently-playing">
                 <img src="${albumImage}" alt="Album Art">
                 <div class="info">
-                  <div class="song-title" style="color: ${config.currSongColor};">${currentlyPlaying.name}</div>
-                  <div class="artist-name" style="color: ${config.currArtistColor};">${currentlyPlaying.artists.map(artist => artist.name).join(', ')}</div>
+                  <div class="song-title" style="color: ${appConfig.currSongColor};">${currentlyPlaying.name}</div>
+                  <div class="artist-name" style="color: ${appConfig.currArtistColor};">${currentlyPlaying.artists.map(artist => artist.name).join(', ')}</div>
                 </div>
               </div>
     
               <!-- Progress Bar Section -->
               <div class="progress-container">
-                <div class="time" id="time-remaining" style="color: ${config.currTimeColor};">${Math.floor((playbackProgress_ms) / 60000)}:${Math.floor(((playbackProgress_ms) % 60000) / 1000).toString().padStart(2, '0')}</div>
+                <div class="time" id="time-remaining" style="color: ${appConfig.currTimeColor};">${Math.floor((playbackProgress_ms) / 60000)}:${Math.floor(((playbackProgress_ms) % 60000) / 1000).toString().padStart(2, '0')}</div>
                   <div id="progress-bar">
                     <div id="progress"></div>
                   </div>
-                <div class="time" id="total-duration" style="color: ${config.currTimeColor};">${Math.floor(playbackDuration / 60000)}:${Math.floor((playbackDuration % 60000) / 1000).toString().padStart(2, '0')}</div>
+                <div class="time" id="total-duration" style="color: ${appConfig.currTimeColor};">${Math.floor(playbackDuration / 60000)}:${Math.floor((playbackDuration % 60000) / 1000).toString().padStart(2, '0')}</div>
               </div>
     
               <!-- Queue Section -->
@@ -612,10 +622,10 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
                 ${queue.map(track => `
                   <div class="queue-item">
                     <div class="song-info">
-                      <h2 style="color: ${config.queueSongColor};">${track.name}</h2>
-                      <p style="color: ${config.queueArtistColor};">${track.artists.map(artist => artist.name).join(', ')}</p>
+                      <h2 style="color: ${appConfig.queueSongColor};">${track.name}</h2>
+                      <p style="color: ${appConfig.queueArtistColor};">${track.artists.map(artist => artist.name).join(', ')}</p>
                     </div>
-                    <div class="duration" style="color: ${config.QueueTimeColor};">${Math.floor(track.duration_ms / 60000)}:${Math.floor((track.duration_ms % 60000) / 1000).toString().padStart(2, '0')}</div>
+                    <div class="duration" style="color: ${appConfig.QueueTimeColor};">${Math.floor(track.duration_ms / 60000)}:${Math.floor((track.duration_ms % 60000) / 1000).toString().padStart(2, '0')}</div>
                   </div>
                 `).join('')}
               </div>
@@ -633,8 +643,8 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
                 <!-- Currently Playing Section -->
                 <div class="currently-playing">
                   <div class="info">
-                    <div class="song-title" style="color: ${config.currSongColor};">Spotify is Not Available or Timed Out.</div>
-                    <div class="artist-name" style="color: ${config.currArtistColor};">Start Spotify or Resume Playing the Song.</div>
+                    <div class="song-title" style="color: ${appConfig.currSongColor};">Spotify is Not Available or Timed Out.</div>
+                    <div class="artist-name" style="color: ${appConfig.currArtistColor};">Start Spotify or Resume Playing the Song.</div>
                   </div>
                 </div>
               </div>
@@ -651,8 +661,8 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
                 <!-- Currently Playing Section -->
                 <div class="currently-playing">
                   <div class="info">
-                    <div class="song-title" style="color: ${config.currSongColor};">Encountered an Unexpected ERORR : ${statusCode}</div>
-                    <div class="artist-name" style="color: ${config.currArtistColor};">
+                    <div class="song-title" style="color: ${appConfig.currSongColor};">Encountered an Unexpected ERORR : ${statusCode}</div>
+                    <div class="artist-name" style="color: ${appConfig.currArtistColor};">
                       <p class="error-p">Make sure Spotify is running and playing a song.</p>
                       <p class="error-p">Try again.......</p> 
                     </div>
@@ -668,7 +678,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
     // Render an HTML page with the currently playing track and queue data
     res.send(HTMLpage);
   } catch (error) {
-      console.error('appserver.cjs Error fetching playback state or queue:', error);
+      console.error('appserver.cjs > Error fetching playback state or queue:', error);
       res.send(`Error: ${error.message}`);
   }
 });
@@ -681,9 +691,9 @@ const refreshAccessToken = async () => {
       accessToken = data.body.access_token;
       tokenExpiration = Date.now() + (data.body.expires_in - 60) * 1000; // Update expiration time
       spotifyApi.setAccessToken(accessToken);
-      console.log('appserver.cjs Access token refreshed');
+      console.log('appserver.cjs > Access token refreshed');
     } catch (error) {
-      console.error('appserver.cjs Error refreshing access token:', error);
+      console.error('appserver.cjs > Error refreshing access token:', error);
     }
   };
 
@@ -726,7 +736,7 @@ const getArtistGenres = async (artistIds) => {
     }));
 
   } catch (error) {
-    console.error('appserver.cjs Error fetching artist genres:', error);
+    console.error('appserver.cjs > Error fetching artist genres:', error);
     return [];
   }
 };
@@ -750,7 +760,7 @@ async function getTrackAudioFeatures(trackId) {
       valence: features.valence
     };
 
-    console.error(`appserver.cjs Error fetching audio features for track ID ${trackId}:`, error);
+    console.error(`appserver.cjs > Error fetching audio features for track ID ${trackId}:`, error);
     return null; // Return null or handle the error as needed
 
   } catch (error) {
@@ -782,7 +792,7 @@ const getTracksGenres = async (tracks) => {
       return genres || 'Unknown';
     });
   } catch (error) {
-    console.error('appserver.cjs Error mapping genres to tracks:', error);
+    console.error('appserver.cjs > Error mapping genres to tracks:', error);
     return tracks.map(() => 'Unknown');
   }
 };
@@ -796,7 +806,7 @@ async function getTracksFeatures(trackIds) {
     if (features) {
       featuresList.push(features);
     } else {
-      console.error(`appserver.cjs Warning: No audio features found for track ID ${trackId}`);
+      console.error(`appserver.cjs > Warning: No audio features found for track ID ${trackId}`);
     }
   }
 
@@ -809,16 +819,16 @@ expressApp.get('/health', (req, res) => {
 });
 
 expressApp.listen(port, () => {
-  console.log(`appserver.cjs Server running at http://localhost:${port}`);
-  console.log(`appserver.cjs Press Ctrl+C to stop the server.`);
+  console.log(`appserver.cjs > Server running at http://localhost:${port}`);
+  console.log(`appserver.cjs > Press Ctrl+C to stop the server.`);
 });
 
 module.exports = expressApp; // Export the server instance
 
 function gracefulshutdown() { 
-    console.log("appserver.cjs Shutting down"); 
+    console.log("appserver.cjs > Shutting down"); 
     expressApp.close(() => { 
-        console.log("appserver.cjs HTTP server closed."); 
+        console.log("appserver.cjs > HTTP server closed."); 
           
         // When server has stopped accepting connections  
         // exit the process with exit status 0 

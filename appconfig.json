@@ -1,8 +1,8 @@
 {
-    "port": 3000,
+    "port": 5000,
 
-    "clientId": "${SPOTIFY_CLIENT_ID}",
-    "clientSecret": "${SPOTIFY_CLIENT_SECRET}",
+    "spotifyClientId": "${SPOTIFY_CLIENT_ID}",
+    "spotifyClientSecret": "${SPOTIFY_CLIENT_SECRET}",
 
     "windowWidth": 600,
     "windowHeight": 725,
