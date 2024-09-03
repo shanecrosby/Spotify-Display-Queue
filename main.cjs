@@ -43,6 +43,7 @@ console.silly = log.silly;
 // Properly configure electron-log
 log.transports.file.level = 'info';
 log.transports.file.file = path.join(app.getPath('userData'), 'logs/appmain.log');
+log.info('log file path is ',log.transports.file.file);
 
 // Set global variables and read the config file
 let mainWindow;
@@ -91,19 +92,40 @@ async function startServer() {
     if (!isDev) {
         log.info('main.cjs > !isDev - Starting Express server in the same process');
 
-        // Run the server directly and assign the server instance
+        // Check port availability before starting the server        
         try {
-            serverInstance = require('./appserver.cjs');
-            // Pause for 5 seconds before checking if the server is up
-            await delay(5000);
-
-            const serverRunning = await isServerRunning(port);
-            log.info(`Server running: ${serverRunning}`);
+            const portInUse = await checkPortAvailability(port);
+            if(portInUse) {
+                log.error(`Port ${port} is already in use.`);
+                app.quit();
+                process.exit(1);
+            } else {
+                if (serverInstance) {
+                    serverInstance.close(() => {
+                        log.info('Previous server instance closed.');
+                        initializeServer();
+                    });
+                } else {
+                    initializeServer();
+                }            
+            }
+            
         } catch (error) {
             log.error('Failed to start server', error);
             app.quit();
+            process.exit(1);
         }
     }
+}
+
+function initializeServer() {
+    serverInstance = require('./appserver.cjs');
+
+    // Pause for 5 seconds before checking if the server is up
+    delay(5000).then(async () => {
+        const serverRunning = await isServerRunning(port);
+        log.info(`Server running: ${serverRunning}`);
+    });
 }
 
 app.on('window-all-closed', () => {
@@ -111,7 +133,6 @@ app.on('window-all-closed', () => {
         app.quit();
     }
 });
-
 
 app.on('will-quit', () => {
     globalShortcut.unregisterAll();
@@ -121,8 +142,8 @@ app.on('will-quit', () => {
                 console.log('Server closed successfully');
             });
         }
-    } catch {
-        console.error('main.cjs > error with serverInstance.close()', err)
+    } catch (err) {
+        log.error('main.cjs > error with serverInstance.close()', err);
     }
 });
 
@@ -150,7 +171,7 @@ async function createWindow(config) {
 
     log.info(`main.cjs > before .loadURL(startUrl) ${startUrl}`);
     mainWindow.loadURL(startUrl).catch(err => log.error('Failed to load URL:', err));
-    mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools(); //only needed during dev
 
     mainWindow.on('ready-to-show', () => {
         log.info('main.cjs > Window is ready to show');
@@ -172,6 +193,24 @@ async function createWindow(config) {
 // ==== UTILITY FUNCTIONS ====
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Function to check if the port is available
+function checkPortAvailability(port) {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.once('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+        server.once('listening', () => {
+            server.close(() => resolve(false));
+        });
+        server.listen(port);
+    });
 }
 
 // Function to check if the server is already running
