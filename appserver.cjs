@@ -60,6 +60,7 @@ const port = appConfig.port || 3000; // Default to 3000 if not specified
 const pageRefreshMs = appConfig.pageRefreshMs || 10000; // Default 10,000ms = 10sec
 const fontFamily = appConfig.fontFamily || "'Roboto', sans-serif";
 let backGroundColor = appConfig.backGroundColor || "rgba(255, 255, 255, .5)"; // white opacity 50%
+let borderColor = appConfig.borderColor || "rgba(32,32,32, .5)"; // dark grey opacity 50%
 
 const nbrTracks = appConfig.nbrTracks || 5;
 let statusCode = 0;
@@ -391,10 +392,11 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
 
         waitForRefresh = pageRefreshMs;
       }
-      backGroundColor = appConfig.backGroundColor;    
+      backGroundColor = appConfig.backGroundColor;
+      borderColor = appConfig.borderColor;
     } else {
         if (statusCode === 204) {
-          console.error('Spotify is not available. Either state spotify or resume play on a song.'); 
+          console.error('Spotify is not available. Either start spotify or resume playback.'); 
           backGroundColor = appConfig.errorBackGroundColor;
         } else {
           console.error('Unexpected Error', err); 
