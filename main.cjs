@@ -181,6 +181,7 @@ async function createWindow(config) {
         frame: false, // Remove the window frame.
         transparent: false, // Enable transparency.
         backgroundMaterial: 'acrylic', // Apply acrylic background blur in Windows
+        vibrancy: 'under-window', // Apply background blur on MacOS
         webPreferences: {
             //preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
