@@ -28,8 +28,8 @@ function loadConfig() {
     log.info('appserver.cjs > SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID);
     log.info('appserver.cjs > SPOTIFY_CLIENT_SECRET:', process.env.SPOTIFY_CLIENT_SECRET);
 
-    if(config.spotifyClientId = null) {
-      log.error('Environment variable file containing Spotify Client ID and API key is missing. Unable to start.');
+    if(!config.spotifyClientId || !config.spotifyClientSecret) {
+      log.error('Environment variables containing the Spotify Client ID and API key are missing. Unable to start.');
       throw error;
     }
   } catch (error) {
@@ -167,7 +167,8 @@ expressApp.get('/callback', async (req, res) => {
 
     res.redirect('/queue');
   } catch (error) {
-    res.send(`Error: ${error}`);
+    log.error('Error during authorization code grant:', error);
+    res.send(`Error: ${error.message}`);
   }
 });
 
