@@ -6,8 +6,8 @@
     "start": "node appserver.cjs",
     "start:server": "set NODE_ENV=production && node appserver.cjs",
     "wait-for-server": "wait-on http://localhost:5000/login",
-    "electron": "concurrently \"npm run start:server\" \"npm run wait-for-server && electron .\"",
     "check-port": "node checkPort.js",
+    "electron": "npm run check-port && concurrently \"npm run start:server\" \"npm run wait-for-server && electron .\"",
     "build": "electron-builder"
   },
   "keywords": [],
