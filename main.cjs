@@ -57,6 +57,8 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 // Assign the config values
 const port = appConfig.port || 3000; // Default to 3000 if not specified
 const startUrl = `http://localhost:${port}/login`;
+const isMacOs = process.platform==='darwin';
+
 if(!appConfig.spotifyClientId) {
     log.error('Environment variable file containing Spotify Client ID and API key is missing. Unable to start.');
     app.quit(); // Gracefully quit the app
@@ -171,7 +173,10 @@ app.on('will-quit', () => {
 });
 
 
-// Function that initiates the server application
+if(isMacOs) {
+    app.dock.hide(); // Allow MacOS to display on top of full-screen mode. Does nothing in windows.
+}
+
 async function createWindow(config) {
     log.info('Creating window with config:', config);
 
@@ -209,6 +214,8 @@ async function createWindow(config) {
     });
 
     mainWindow.setMenuBarVisibility(false);
+    mainWindow.setAlwaysOnTop(true, "screen-saver"); // Allows app to sit above full-screen windows in MacOS
+    mainWindow.setVisibleOnAllWorkspaces(true); // Keeps app visible no matter which workspace is active in MacOS
     mainWindow.webContents.setVibrancy(under-window); // Blur background in MacOS
     mainWindow.webContents.setBackgroundMaterial("acrylic"); // Blur background in Windows
     //mainWindow.webContents.openDevTools(); //for debugging purposes only
