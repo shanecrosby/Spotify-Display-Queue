@@ -1,6 +1,7 @@
 // ==== SET UP EXTERNAL REFERENCE MODULES ====
 require('dotenv').config(); //allows storing sensitive strings like API keys in .env file to be excluded from github.
 const express = require('express');
+const net = require('net');
 const SpotifyWebApi = require('spotify-web-api-node');
 const axios = require('axios');
 const expressApp = express(); //made global so it's accessible inside loadConfig();
@@ -823,10 +824,34 @@ expressApp.get('/health', (req, res) => {
   res.status(200).send('Server is running');
 });
 
-expressApp.listen(port, () => {
-  console.log(`appserver.cjs > Server running at http://localhost:${port}`);
-  console.log(`appserver.cjs > Press Ctrl+C to stop the server.`);
-});
+function checkPortAvailability(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', (err) => {
+      if(err.code === 'EADDRINUSE') {
+        resolve(false); //Port is in use
+      } else {
+        resolve(true); // Other error, treat port as available
+      }
+    });
+    server.once('listening',() => {
+      server.close(() => resolve(true)); // Port is available
+    });
+    server.listen(port);
+  });
+}
+
+checkPortAvailability(port)
+  .then((isAvailable) => {
+    if (isAvailable) {
+      expressApp.listen(port, () => {
+        console.log(`appserver.cjs > Server running at http://localhost:${port}`);
+        console.log(`appserver.cjs > Press Ctrl+C to stop the server.`);
+      })
+    } else {
+      console.log(`appserver.cjs > Port ${port} is already in use.`);
+    }
+  })
 
 module.exports = expressApp; // Export the server instance
 
