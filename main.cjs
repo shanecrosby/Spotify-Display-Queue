@@ -94,35 +94,15 @@ async function startServer() {
 
         // Check that the server isn't already running, restart if it is
         try {
-            const portInUse = await checkPortAvailability(port);
-            if(portInUse) {
-                // The port should actually be in use at this point - used by the server
-                try {
-                    // Run the server directly and assign the server instance
-                    if (serverInstance) {
-                        serverInstance.close(() => {
-                            log.info('Previous server instance closed.');
-                            initializeServer();
-                        });
-                    } else {
-                        initializeServer();
-                    }
-                } catch (error) {
-                    log.error('Failed to start server', error);
-                    //We actually don't want to quit here, just suppress the port in use message.
-                    //app.quit();
-                }
-            } else {
-                if (serverInstance) {
-                    serverInstance.close(() => {
-                        log.info('Previous server instance closed.');
-                        initializeServer();
-                    });
-                } else {
+            // Run the server directly and assign the server instance
+            if (serverInstance) {
+                serverInstance.close(() => {
+                    log.info('Previous server instance closed.');
                     initializeServer();
-                }            
+                });
+            } else {
+                initializeServer();
             }
-            
         } catch (error) {
             log.error('Failed to start server', error);
             app.quit();
@@ -132,10 +112,30 @@ async function startServer() {
 }
 
 function initializeServer() {
-    serverInstance = require('./appserver.cjs');
+    try {
+        serverInstance = require('./appserver.cjs');
 
-    // Pause for 5 seconds before checking if the server is up
-    delay(20000).then(async () => {
+        serverInstance.listen(port, () => {
+            log.info(`Server is running on port ${port}`);
+        }).on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                log.warn(`Port ${port} is already in use, which is expected. Suppressing the error.`);
+                // Optionally, perform other actions or just ignore the error
+            } else {
+                log.error('An error occurred:', err);
+                app.quit();
+                process.exit(1);
+            }
+        });
+
+    } catch (error) {
+        log.error('Failed to initialize server:', error);
+        app.quit();
+        process.exit(1);
+    }
+
+    // Optional: Log to check if the server is actually running
+    delay(5000).then(async () => {
         const serverRunning = await isServerRunning(port);
         log.info(`Server running: ${serverRunning}`);
     });
@@ -171,10 +171,9 @@ async function createWindow(config) {
         frame: false, // Remove the window frame.
         transparent: true, // Enable transparency.
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            //preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
-            //webSecurity: false, //this is required for my ancient macbook
         },
         fullscreen: false,
         autoHideMenuBar: false
@@ -204,24 +203,6 @@ async function createWindow(config) {
 // ==== UTILITY FUNCTIONS ====
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Function to check if the port is available
-function checkPortAvailability(port) {
-    return new Promise((resolve) => {
-        const server = net.createServer();
-        server.once('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        });
-        server.once('listening', () => {
-            server.close(() => resolve(false));
-        });
-        server.listen(port);
-    });
 }
 
 // Function to check if the server is already running
