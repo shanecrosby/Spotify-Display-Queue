@@ -57,7 +57,7 @@ console.log(`****** SERVER STARTING FOR DISPLAY SONGS QUEUE ******`);
 const appConfig = loadConfig();
 
 const port = appConfig.port || 3000; // Default to 3000 if not specified
-const pageRefreshMs = appConfig.pageRefreshMs || 10000; // Default 10,000ms = 10sec
+const pageRefreshMs = appConfig.pageRefreshMs || 5000; // Default 10,000ms = 10sec
 const fontFamily = appConfig.fontFamily || "'Roboto', sans-serif";
 let backGroundColor = appConfig.backGroundColor || "rgba(255, 255, 255, .5)"; // white opacity 50%
 
