@@ -25,7 +25,9 @@ function loadConfig() {
     // Replace variables in appconfig with actual environment variables
     config.spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
     config.spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-    log.info('appserver.cjs > spotifyClientID = ',config.spotifyClientId);
+    log.info('appserver.cjs > SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID);
+    log.info('appserver.cjs > SPOTIFY_CLIENT_SECRET:', process.env.SPOTIFY_CLIENT_SECRET);
+
     if(config.spotifyClientId = null) {
       log.error('Environment variable file containing Spotify Client ID and API key is missing. Unable to start.');
       throw error;

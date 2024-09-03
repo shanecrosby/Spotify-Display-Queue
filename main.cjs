@@ -24,7 +24,8 @@ function loadConfig() {
         // Replace variables in appconfig with actual environment variables
         config.spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
         config.spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-        log.info('main.cjs > spotifyClientID = ',config.spotifyClientId);
+        log.info('main.cjs > SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID);
+        log.info('main.cjs > SPOTIFY_CLIENT_SECRET:', process.env.SPOTIFY_CLIENT_SECRET);
     } catch (error) {
         log.error('Failed to read config.json:', error);
         app.quit();
