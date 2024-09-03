@@ -92,38 +92,18 @@ async function startServer() {
     if (!isDev) {
         log.info('main.cjs > !isDev - Starting Express server in the same process');
 
-        // Check port availability before starting the server        
+        // Check that the server isn't already running, restart if it is
         try {
-            // const portInUse = await checkPortAvailability(port);
-            // if(portInUse) {
-            //     // Wait until the port is free
-            //     try {
-            //         await waitForPort(port);
-
-            //         // Run the server directly and assign the server instance
-            //         if (serverInstance) {
-            //             serverInstance.close(() => {
-            //                 log.info('Previous server instance closed.');
-            //                 initializeServer();
-            //             });
-            //         } else {
-            //             initializeServer();
-            //         }
-            //     } catch (error) {
-            //         log.error('Failed to start server', error);
-            //         //app.quit();
-            //     }
-            // } else {
-                if (serverInstance) {
-                    serverInstance.close(() => {
-                        log.info('Previous server instance closed.');
-                        initializeServer();
-                    });
-                } else {
-                    initializeServer();
-                }            
-            //}
             
+            // Run the server directly and assign the server instance
+            if (serverInstance) {
+                serverInstance.close(() => {
+                    log.info('Previous server instance closed.');
+                    initializeServer();
+                });
+            } else {
+                initializeServer();
+            }            
         } catch (error) {
             log.error('Failed to start server', error);
             app.quit();
@@ -135,7 +115,7 @@ async function startServer() {
 function initializeServer() {
     serverInstance = require('./appserver.cjs');
 
-    // Pause for 5 seconds before checking if the server is up
+    // Pause for 20 seconds before checking if the server is up
     delay(20000).then(async () => {
         const serverRunning = await isServerRunning(port);
         log.info(`Server running: ${serverRunning}`);
@@ -205,44 +185,6 @@ async function createWindow(config) {
 // ==== UTILITY FUNCTIONS ====
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Function to check if the port is available
-function checkPortAvailability(port) {
-    return new Promise((resolve) => {
-        const server = net.createServer();
-        server.once('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        });
-        server.once('listening', () => {
-            //server.close(() => resolve(false));
-        });
-        server.listen(port);
-    });
-}
-
-// Function to wait until the port is free with a timeout
-async function waitForPort(port, delayMs = 1000, timeoutMs = 10000) {
-    const startTime = Date.now();
-
-    while (true) {
-        const currentTime = Date.now();
-        if (currentTime - startTime > timeoutMs) {
-            throw new Error(`Port ${port} is still in use after ${timeoutMs}ms.`);
-        }
-
-        if (!(await isServerRunning(port))) {
-            log.info(`Port ${port} is now available.`);
-            return;
-        }
-
-        log.info(`Port ${port} is in use. Waiting...`);
-        await delay(delayMs);
-    }
 }
 
 // Function to check if the server is already running
