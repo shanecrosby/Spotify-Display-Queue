@@ -429,6 +429,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           width: 100%;
           height: 100%;
           background-color: ${backGroundColor}; /* Default background */
+          backdrop-filter: blur(10px);
         }
 
         .container-wrapper {
@@ -441,7 +442,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         .container {
           position: relative;
           padding: 20px;
-          border: 1px solid #ddd;
+          border: 1px solid ${borderColor};
           margin: 10px;
           max-width: 500px; /* Limit the maximum width of the entire container */
           margin: 0 auto; /* Center the container */
@@ -509,7 +510,7 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
           justify-content: space-between;
           align-items: center;
           padding: 10px;
-          border-bottom: 1px solid #ddd;
+          border-bottom: 1px solid ${borderColor};
         }
     
         .queue-item h2 {
