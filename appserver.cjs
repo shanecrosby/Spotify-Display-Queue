@@ -292,7 +292,8 @@ expressApp.get('/queue', ensureValidToken, async (req, res) => {
         playbackDuration = playbackState.body.item.duration_ms;
         // Calculate the total time left in the song
         // timeLeft = playbackDuration - playbackProgress_ms;
-        waitForRefresh = playbackDuration - playbackProgress_ms
+        //waitForRefresh = playbackDuration - playbackProgress_ms //don't update until end of song
+        waitForRefresh = pageRefreshMs; //refresh based on config refresh interval
 
         currentlyPlaying = playbackState.body.item;
 
